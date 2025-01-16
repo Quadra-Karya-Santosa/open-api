@@ -7,6 +7,7 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  Req,
   UnauthorizedException,
   UseInterceptors,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { User } from 'libs/entities';
 import { UserAuthHelper } from 'auth/auth';
 import { RoleEnum } from 'libs/entities/enum/role';
 import { AuthRepository } from '../repository/auth.repository';
+import { Request } from 'express';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -49,7 +51,10 @@ export class UserUsecases {
       'Error occured when register, contact dionisiusadityaoctanugraha@gmail.com',
   })
   @Post('/register')
-  async register(@Body() body: RegisterDTO): Promise<AuthenticationDTO> {
+  async register(
+    @Body() body: RegisterDTO,
+    @Req() req: Request,
+  ): Promise<AuthenticationDTO> {
     const exist = await this.userRepository.getUserByEmail(body.email);
     if (exist) {
       throw new ConflictException('Email already registered');
@@ -60,6 +65,8 @@ export class UserUsecases {
       username: body.name,
       password,
       role: RoleEnum.user,
+      ip: req.ip,
+      useragent: req.headers['user-agent'],
     });
     try {
       const data = await this.userRepository.insertUser(user);
