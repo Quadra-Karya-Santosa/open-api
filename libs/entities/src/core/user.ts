@@ -17,6 +17,16 @@ export class User extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   public username: string;
 
+  @ApiHideProperty()
+  @Exclude()
+  @Column({ type: 'text', nullable: true })
+  public ip!: string;
+
+  @ApiHideProperty()
+  @Exclude()
+  @Column({ type: 'text', nullable: true })
+  public useragent: string;
+
   @ApiProperty()
   @Column({
     type: 'enum',
