@@ -199,7 +199,7 @@ export class ArticleUsecases {
   @ApiResponse({
     status: 201,
     description: 'Get article success.',
-    type: [ArticlesDTO],
+    type: Article,
   })
   @ApiNotFoundResponse({
     description: 'Article not found',
