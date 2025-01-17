@@ -51,3 +51,11 @@ export class AuthenticationDTO {
   @ApiProperty({ type: User })
   public readonly user: User;
 }
+
+export interface GoogleUser {
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture: string;
+  accessToken: string;
+}

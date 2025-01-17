@@ -7,13 +7,17 @@ import {
   InternalServerErrorException,
   Param,
   Post,
+  Req,
+  Res,
   UnauthorizedException,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiExcludeEndpoint,
   ApiInternalServerErrorResponse,
   ApiResponse,
   ApiTags,
@@ -24,6 +28,8 @@ import { User } from 'libs/entities';
 import { UserAuthHelper } from 'auth/auth';
 import { RoleEnum } from 'libs/entities/enum/role';
 import { AuthRepository } from '../repository/auth.repository';
+import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -49,7 +55,10 @@ export class UserUsecases {
       'Error occured when register, contact dionisiusadityaoctanugraha@gmail.com',
   })
   @Post('/register')
-  async register(@Body() body: RegisterDTO): Promise<AuthenticationDTO> {
+  async register(
+    @Body() body: RegisterDTO,
+    @Req() req: Request,
+  ): Promise<AuthenticationDTO> {
     const exist = await this.userRepository.getUserByEmail(body.email);
     if (exist) {
       throw new ConflictException('Email already registered');
@@ -60,6 +69,8 @@ export class UserUsecases {
       username: body.name,
       password,
       role: RoleEnum.user,
+      ip: req.ip,
+      useragent: req.headers['user-agent'],
     });
     try {
       const data = await this.userRepository.insertUser(user);
@@ -111,5 +122,19 @@ export class UserUsecases {
   @Get('/profile/:id')
   async getProfile(@Param('id') id: string) {
     return await this.authRepository.getDataUser(id);
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+  async googleAuth(@Req() req: any) {}
+
+  @Get('google/callback')
+  @ApiExcludeEndpoint()
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: any, @Res() res: any) {
+    const user = await this.userRepository.getUserByEmail(req.user.email);
+    const jwt = this.authHelper.generateToken(user);
+    res.redirect(`http://localhost:3000/dashboard?token=${jwt}`);
   }
 }

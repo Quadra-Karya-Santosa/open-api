@@ -63,6 +63,8 @@ export class ArticleUsecases {
         content,
         author,
         ownerId: user.id,
+        ip: req.ip,
+        useragent: req.headers['user-agent'],
       });
       await this.articleRepository.insertArticle(article);
     } catch (error) {

@@ -31,6 +31,16 @@ export class Article extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   public ownerId: string;
 
+  @ApiHideProperty()
+  @Exclude()
+  @Column({ type: 'text', nullable: true })
+  public ip!: string;
+
+  @ApiHideProperty()
+  @Exclude()
+  @Column({ type: 'text', nullable: true })
+  public useragent: string;
+
   @CreateDateColumn()
   public createdAt: Date;
 

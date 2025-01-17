@@ -12,6 +12,15 @@ message GetUserResponse {
   string role = 4;
 }
 
+message GoogleRequest {
+  string email = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string picture = 4;
+  string accessToken = 5;
+}
+
 service AuthService {
   rpc GetUser (GetUserRequest) returns (GetUserResponse);
+  rpc ValidateOrCreateGoogleUser (GoogleRequest) returns (GetUserResponse);
 }

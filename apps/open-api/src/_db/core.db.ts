@@ -18,7 +18,7 @@ export class CoreDB implements TypeOrmOptionsFactory {
       migrationsRun: true,
       logger: 'file',
       logging: ['error', 'query', 'log'],
-      synchronize: true,
+      synchronize: false,
     };
   }
 }
