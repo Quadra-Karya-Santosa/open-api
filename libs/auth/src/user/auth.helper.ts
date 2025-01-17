@@ -12,6 +12,7 @@ import { promisify } from 'util';
 import { randomBytes, scrypt } from 'crypto';
 import { AuthServiceClient } from 'libs/entities/grpc-interfaces/auth-grpc.interface';
 import { User } from 'libs/entities';
+import { GoogleUser } from 'apps/auth-api/src/dto/auth.dto';
 
 @Injectable()
 export class UserAuthHelper implements OnModuleInit {
@@ -43,6 +44,16 @@ export class UserAuthHelper implements OnModuleInit {
       // return decoded;
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  public async validateGoogleUser(data: GoogleUser): Promise<User> {
+    try {
+      return await this.authService
+        .validateOrCreateGoogleUser(data)
+        .toPromise();
+    } catch (error) {
+      console.log(error);
     }
   }
 

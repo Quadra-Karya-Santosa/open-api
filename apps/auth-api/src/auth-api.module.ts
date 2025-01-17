@@ -10,6 +10,7 @@ import { UserAuthHelper, JwtAuthGuardUser, UserJwtStrategy } from 'auth/auth';
 import { GrpcUsecases } from './usecases/grpc.usecase';
 import { User } from 'libs/entities';
 import { AuthRepository } from './repository/auth.repository';
+import { GoogleStrategy } from 'auth/auth/user/google.strategy';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AuthRepository } from './repository/auth.repository';
     UserJwtStrategy,
     JwtAuthGuardUser,
     UserAuthHelper,
+    GoogleStrategy,
   ],
   exports: [UserJwtStrategy],
 })

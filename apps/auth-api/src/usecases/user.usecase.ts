@@ -8,13 +8,16 @@ import {
   Param,
   Post,
   Req,
+  Res,
   UnauthorizedException,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiExcludeEndpoint,
   ApiInternalServerErrorResponse,
   ApiResponse,
   ApiTags,
@@ -26,6 +29,7 @@ import { UserAuthHelper } from 'auth/auth';
 import { RoleEnum } from 'libs/entities/enum/role';
 import { AuthRepository } from '../repository/auth.repository';
 import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -118,5 +122,19 @@ export class UserUsecases {
   @Get('/profile/:id')
   async getProfile(@Param('id') id: string) {
     return await this.authRepository.getDataUser(id);
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+  async googleAuth(@Req() req: any) {}
+
+  @Get('google/callback')
+  @ApiExcludeEndpoint()
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: any, @Res() res: any) {
+    const user = await this.userRepository.getUserByEmail(req.user.email);
+    const jwt = this.authHelper.generateToken(user);
+    res.redirect(`http://localhost:3000/dashboard?token=${jwt}`);
   }
 }
