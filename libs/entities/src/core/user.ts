@@ -41,6 +41,11 @@ export class User extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   public password: string;
 
+  @ApiHideProperty()
+  @Exclude()
+  @Column({ type: 'text', nullable: true })
+  public googleId: string;
+
   constructor(partial: Partial<User>) {
     super();
     Object.assign(this, partial);
