@@ -72,7 +72,11 @@ export class UserAuthHelper implements OnModuleInit {
 
   // Generate JWT Token
   public generateToken(user: User): string {
-    return this.jwt.sign({ id: user.id, email: user.email });
+    return this.jwt.sign({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    });
   }
 
   // Validate User's password

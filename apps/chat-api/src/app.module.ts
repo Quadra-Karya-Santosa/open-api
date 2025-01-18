@@ -5,12 +5,10 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { UserAuthHelper, JwtAuthGuardUser, UserJwtStrategy } from 'auth/auth';
-import { ArticleRepository } from './repository/article.repository';
-import { ArticleUsecases } from './usecases/article.usecase';
-import { Article, Chat } from 'libs/entities/open-api';
-import { ChatUsecases } from './usecases/chat.usecase';
 import { ChatRepository } from './repository/chat.repository';
-import { AuthRepository } from './repository/auth.repository';
+import { ChatGateway } from './usecases/chat-ws.usecase';
+import { Chat } from 'libs/entities/open-api';
+import { WsJwtGuard } from 'auth/auth/user/ws.guard';
 
 @Module({
   imports: [
@@ -20,7 +18,7 @@ import { AuthRepository } from './repository/auth.repository';
       signOptions: { expiresIn: process.env.JWT_EXPIRES },
     }),
     TypeOrmModule.forRootAsync({ useClass: CoreDB }),
-    TypeOrmModule.forFeature([Article, Chat]),
+    TypeOrmModule.forFeature([Chat]),
     ClientsModule.register([
       {
         name: 'AUTH_PACKAGE',
@@ -33,15 +31,15 @@ import { AuthRepository } from './repository/auth.repository';
       },
     ]),
   ],
-  controllers: [ArticleUsecases, ChatUsecases],
+  controllers: [],
   providers: [
-    ArticleRepository,
+    ChatGateway,
     ChatRepository,
-    AuthRepository,
     UserJwtStrategy,
     JwtAuthGuardUser,
     UserAuthHelper,
+    WsJwtGuard,
   ],
   exports: [UserJwtStrategy],
 })
-export class OpenApiModule {}
+export class ChatApiModule {}

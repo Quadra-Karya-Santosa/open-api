@@ -1,3 +1,4 @@
 import { Article } from './article';
+import { Chat } from './chat';
 
-export { Article };
+export { Article, Chat };

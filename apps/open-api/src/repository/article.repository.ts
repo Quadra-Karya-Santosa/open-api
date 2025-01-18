@@ -25,15 +25,18 @@ export class ArticleRepository {
     await this.repository.delete({ id, ownerId });
   };
 
-  getArticleById = async (id: string, ownerId: string) => {
+  getArticleById = async (id: string) => {
+    return await this.repository.findOne({ where: { id } });
+  };
+
+  getUserArticleById = async (id: string, ownerId: string) => {
     return await this.repository.findOne({ where: { id, ownerId } });
   };
 
-  getArticleByUserId = async (ownerId: string, pagination: PagingDTO) => {
+  getArticleByUserId = async (pagination: PagingDTO) => {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
     const [articles, total] = await this.repository.findAndCount({
-      where: { ownerId },
       take: limit,
       skip,
       order: { createdAt: 'DESC' },

@@ -44,3 +44,29 @@ export class MetaDTO {
   @IsBoolean()
   public readonly hasNextPage: boolean;
 }
+
+export class MetaMessageDTO {
+  @ApiProperty()
+  @IsNumber()
+  public readonly total: number;
+
+  @ApiProperty()
+  @IsNumber()
+  public readonly skip: number;
+
+  @ApiProperty()
+  @IsNumber()
+  public readonly limit: number;
+
+  @ApiProperty()
+  @IsNumber()
+  public readonly lastPage: number;
+
+  @ApiProperty()
+  @IsBoolean()
+  public readonly hasPreviousPage: boolean;
+
+  @ApiProperty()
+  @IsBoolean()
+  public readonly hasNextPage: boolean;
+}

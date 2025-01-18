@@ -20,7 +20,16 @@ message GoogleRequest {
   string accessToken = 5;
 }
 
+message GetUsersRequest {
+  repeated string ids = 1;
+}
+
+message GetUsersResponse {
+  repeated GetUserResponse users = 1;
+}
+
 service AuthService {
   rpc GetUser (GetUserRequest) returns (GetUserResponse);
   rpc ValidateOrCreateGoogleUser (GoogleRequest) returns (GetUserResponse);
+  rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
 }
