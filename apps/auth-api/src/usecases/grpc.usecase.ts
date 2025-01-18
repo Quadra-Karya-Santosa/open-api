@@ -38,4 +38,10 @@ export class GrpcUsecases {
     }
     return user;
   }
+
+  @GrpcMethod('AuthService', 'GetUsers')
+  async getUsers(body: { ids: string[] }) {
+    const users = await this.service.getUserByIds(body.ids);
+    return { users };
+  }
 }
