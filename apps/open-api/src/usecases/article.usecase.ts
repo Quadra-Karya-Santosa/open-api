@@ -99,7 +99,10 @@ export class ArticleUsecases {
     const user: User = req.user;
     const { title, content, author } = body;
     try {
-      const exist = await this.articleRepository.getArticleById(id, user.id);
+      const exist = await this.articleRepository.getUserArticleById(
+        id,
+        user.id,
+      );
       if (!exist) {
         throw new ForbiddenException();
       }
@@ -136,7 +139,10 @@ export class ArticleUsecases {
   async deleteArticle(@Param('id') id: string, @Req() req: any): Promise<void> {
     const user: User = req.user;
     try {
-      const exist = await this.articleRepository.getArticleById(id, user.id);
+      const exist = await this.articleRepository.getUserArticleById(
+        id,
+        user.id,
+      );
       if (!exist) {
         throw new ForbiddenException();
       }
@@ -161,17 +167,12 @@ export class ArticleUsecases {
   @ApiUnauthorizedResponse({
     description: "You don't have access to this api",
   })
-  @UseGuards(AuthGuard('user'))
   @Get('/')
-  async getArticles(
-    @Query() pagination: PagingDTO,
-    @Req() req: any,
-  ): Promise<ArticlesDTO> {
-    const user: User = req.user;
+  async getArticles(@Query() pagination: PagingDTO): Promise<ArticlesDTO> {
     try {
       const { page, limit } = pagination;
       const { total, articles } =
-        await this.articleRepository.getArticleByUserId(user.id, pagination);
+        await this.articleRepository.getArticleByUserId(pagination);
 
       const lastPage = Math.ceil(total / limit);
       const hasPreviousPage = page > 1;
@@ -213,15 +214,10 @@ export class ArticleUsecases {
   @ApiUnauthorizedResponse({
     description: "You don't have access to this api",
   })
-  @UseGuards(AuthGuard('user'))
   @Get('/:id')
-  async getArticleById(
-    @Param('id') id: string,
-    @Req() req: any,
-  ): Promise<Article> {
-    const user: User = req.user;
+  async getArticleById(@Param('id') id: string): Promise<Article> {
     try {
-      const article = await this.articleRepository.getArticleById(id, user.id);
+      const article = await this.articleRepository.getArticleById(id);
       if (!article)
         throw new NotFoundException(`Article with id ${id} not found`);
       return article;

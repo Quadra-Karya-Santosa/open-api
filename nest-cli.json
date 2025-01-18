@@ -54,6 +54,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/auth/tsconfig.lib.json"
       }
+    },
+    "chat-api": {
+      "type": "application",
+      "root": "apps/chat-api/src",
+      "entryFile": "main",
+      "sourceRoot": "apps/chat-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/chat-api/tsconfig.app.json"
+      }
     }
   }
 }
