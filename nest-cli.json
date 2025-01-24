@@ -63,6 +63,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/chat-api/tsconfig.app.json"
       }
+    },
+    "cron": {
+      "type": "application",
+      "root": "apps/cron/src",
+      "entryFile": "main",
+      "sourceRoot": "apps/cron/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cron/tsconfig.app.json"
+      }
     }
   }
 }
