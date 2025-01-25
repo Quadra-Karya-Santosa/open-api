@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   CommentPostDTO,
   GetAssetDetailResDTO,
@@ -24,6 +24,8 @@ import { SeedsUserDTO } from '../dto/user.dto';
 export class SeedsRepository {
   private seedsURL = 'https://app.seeds.finance';
 
+  constructor(private readonly logger: Logger) {}
+
   getUserToken = async (user: SeedsUserDTO): Promise<LoginResDTO | null> => {
     try {
       const { phoneNumber, password } = user;
@@ -47,6 +49,7 @@ export class SeedsRepository {
       const result: LoginResDTO = await response.json();
       return result;
     } catch (error) {
+      this.logger.error('error getUserToken: ', error);
       return null;
     }
   };
@@ -64,6 +67,7 @@ export class SeedsRepository {
       const result: SeedsUserResDTO = await response.json();
       return result;
     } catch (error) {
+      this.logger.error('error getUser: ', error);
       return null;
     }
   };
@@ -83,6 +87,7 @@ export class SeedsRepository {
       const result: GetPostResDTO = await response.json();
       return result.data;
     } catch (error) {
+      this.logger.error('error getPosts: ', error);
       return null;
     }
   };
@@ -135,17 +140,22 @@ export class SeedsRepository {
 
   jobPost = async (loginData: LoginResDTO, user: SeedsUserResDTO) => {
     const posts = await this.getPosts(loginData);
-    const likePost = await this.likePost(
-      loginData,
-      posts[this.randomIndex(posts.length)],
+    const postForLike = posts[this.randomIndex(posts.length)];
+    const postForComment = posts[this.randomIndex(posts.length)];
+
+    const likePost = await this.likePost(loginData, postForLike);
+    this.logger.log(
+      `✅ ${user.phoneNumber} likePost ${postForLike.content_text}: ${likePost.status}`,
     );
-    console.info('✅ likePost:', likePost.status);
+
     const commentPost = await this.commentPost(
       loginData,
-      posts[this.randomIndex(posts.length)],
+      postForComment,
       user.id,
     );
-    console.info('✅ commentPost:', commentPost.status);
+    this.logger.log(
+      `✅ ${user.phoneNumber} commentPost ${postForLike.content_text}: ${commentPost.status}`,
+    );
   };
 
   getQuizes = async (loginData: LoginResDTO) => {
@@ -163,6 +173,7 @@ export class SeedsRepository {
       const result: GetQuizesResDTO = await response.json();
       return result.data;
     } catch (error) {
+      this.logger.error('error getQuizes: ', error);
       return null;
     }
   };
@@ -206,9 +217,13 @@ export class SeedsRepository {
     const freeQuizes = quizes.filter((item) => item.admission_fee === 0);
     const selectedQuiz = freeQuizes[this.randomIndex(freeQuizes.length)];
     const joinQuiz = await this.joinQuiz(loginData, userData, selectedQuiz);
-    console.info('✅ joinQuiz:', joinQuiz.status);
+    this.logger.log(
+      `✅ ${userData.phoneNumber} joinQuiz ${selectedQuiz.name}: ${joinQuiz.status}`,
+    );
     const startQuiz = await this.startQuiz(loginData, selectedQuiz);
-    console.info('✅ startQuiz:', startQuiz.status);
+    this.logger.log(
+      `✅ ${userData.phoneNumber} startQuiz ${selectedQuiz.name}: ${startQuiz.status}`,
+    );
   };
 
   getTournaments = async (
@@ -229,6 +244,7 @@ export class SeedsRepository {
       const result: GetTournamentsDTO = await response.json();
       return result.playList;
     } catch (error) {
+      this.logger.error('error getTournaments: ', error);
       return null;
     }
   };
@@ -272,6 +288,7 @@ export class SeedsRepository {
       const result: GetAssetsDTO = await response.json();
       return result.marketAssetList;
     } catch (error) {
+      this.logger.error('error getAssets: ', error);
       return null;
     }
   };
@@ -291,6 +308,7 @@ export class SeedsRepository {
       const result: GetPortfolioResDTO = await response.json();
       return result.data;
     } catch (error) {
+      this.logger.error('error getPortfolio: ', error);
       return null;
     }
   };
@@ -314,6 +332,7 @@ export class SeedsRepository {
       const result: GetAssetDetailResDTO = await response.json();
       return result.data;
     } catch (error) {
+      this.logger.error('error getCurrentAsset: ', error);
       return null;
     }
   };
@@ -340,7 +359,7 @@ export class SeedsRepository {
     });
   };
 
-  jobTournament = async (loginData: LoginResDTO) => {
+  jobTournament = async (loginData: LoginResDTO, userData: SeedsUserResDTO) => {
     const joinedTournament = await this.getTournaments(loginData, 'JOINED');
     let selectedTournament: Tournament | null = null;
     if (joinedTournament.length > 0) {
@@ -374,7 +393,9 @@ export class SeedsRepository {
         asset.asset_id,
         'SELL',
       );
-      console.info(`✅ sellAsset ${asset.name}:`, sellAsset.status);
+      this.logger.log(
+        `✅ ${userData.phoneNumber} sellAsset ${selectedTournament.name} ${asset.real_ticker}: ${sellAsset.status}`,
+      );
     } else {
       const assets = await this.getAssets(loginData, selectedTournament);
       const ordered = assets.sort(
@@ -386,7 +407,9 @@ export class SeedsRepository {
         ordered[0].id,
         'BUY',
       );
-      console.info(`✅ buyAsset ${ordered[0].name}:`, buyAsset.status);
+      this.logger.log(
+        `✅ ${userData.phoneNumber} buyAsset ${selectedTournament.name} ${ordered[0].realTicker}: ${buyAsset.status}`,
+      );
     }
   };
 
@@ -397,9 +420,9 @@ export class SeedsRepository {
 
       await this.jobPost(loginData, userData);
       await this.jobQuiz(loginData, userData);
-      await this.jobTournament(loginData);
+      await this.jobTournament(loginData, userData);
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
     }
   };
 

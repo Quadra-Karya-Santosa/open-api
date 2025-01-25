@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CoreDB } from './_db/core.db';
 import { SeedsUser } from 'libs/entities/seeds';
@@ -20,6 +20,7 @@ import { ScheduleModule, SchedulerRegistry } from '@nestjs/schedule';
     SeedsRepository,
     CronRepository,
     SchedulerRegistry,
+    Logger,
   ],
   exports: [],
 })
