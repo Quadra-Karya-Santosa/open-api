@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  AssetI,
   CommentPostDTO,
   GetAssetDetailResDTO,
   GetAssetsDTO,
@@ -337,6 +338,26 @@ export class SeedsRepository {
     }
   };
 
+  getAssetDetail = async (loginData: LoginResDTO, assetId: string) => {
+    try {
+      const response = await fetch(
+        `${this.seedsURL}/market/v1/single/${assetId}?tf=daily&currency=IDR`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${loginData.accessToken}`,
+          },
+        },
+      );
+      const result: { marketAsset: AssetI } = await response.json();
+      return result.marketAsset;
+    } catch (error) {
+      this.logger.error('error getCurrentAsset: ', error);
+      return null;
+    }
+  };
+
   sellOrBuyAsset = (
     loginData: LoginResDTO,
     tournament: Tournament,
@@ -387,6 +408,10 @@ export class SeedsRepository {
         selectedTournament,
         portfolio[0].asset_id,
       );
+      const assetDetail = await this.getAssetDetail(
+        loginData,
+        portfolio[0].asset_id,
+      );
       const sellAsset = await this.sellOrBuyAsset(
         loginData,
         selectedTournament,
@@ -394,7 +419,7 @@ export class SeedsRepository {
         'SELL',
       );
       this.logger.log(
-        `✅ ${userData.phoneNumber} sellAsset ${selectedTournament.name} ${asset.real_ticker}: ${sellAsset.status}`,
+        `✅ ${userData.phoneNumber} sellAsset ${selectedTournament.name} ${assetDetail.realTicker}: ${sellAsset.status}`,
       );
     } else {
       const assets = await this.getAssets(loginData, selectedTournament);
@@ -408,7 +433,7 @@ export class SeedsRepository {
         'BUY',
       );
       this.logger.log(
-        `✅ ${userData.phoneNumber} buyAsset ${selectedTournament.name} ${ordered[0].realTicker}: ${buyAsset.status}`,
+        `✅ ${userData.phoneNumber} buyAsset ${selectedTournament.name} ${assets[0].realTicker}: ${buyAsset.status}`,
       );
     }
   };
