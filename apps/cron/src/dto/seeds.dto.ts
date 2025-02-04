@@ -1,3 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
+
 export interface LoginPayloadDTO {
   phoneNumber: string;
   password: string;
@@ -321,4 +324,20 @@ export interface SellDTO {
   asset_id: string;
   amount: number;
   type: string;
+}
+
+export class ChatDTO {
+  @ApiProperty({ type: 'string', default: 'body message' })
+  @IsString()
+  message: string;
+}
+
+export class RegisterTelegramDTO {
+  @ApiProperty({ type: 'number', default: 123412 })
+  @IsNumber()
+  chatId: number;
+
+  @ApiProperty({ type: 'string', default: 'Willy' })
+  @IsString()
+  name: string;
 }
