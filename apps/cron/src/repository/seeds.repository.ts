@@ -383,10 +383,10 @@ export class SeedsRepository {
   jobTournament = async (loginData: LoginResDTO, userData: SeedsUserResDTO) => {
     const joinedTournament = await this.getTournaments(loginData, 'JOINED');
     let selectedTournament: Tournament | null = null;
-    if (joinedTournament.length > 0) {
-      const activeTournament = joinedTournament.filter(
-        (item) => item.status === 'ACTIVE',
-      );
+    const activeTournament = joinedTournament.filter(
+      (item) => item.status === 'ACTIVE',
+    );
+    if (activeTournament.length > 0) {
       selectedTournament =
         activeTournament[this.randomIndex(activeTournament.length)];
     } else {
