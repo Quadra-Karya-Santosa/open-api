@@ -1,32 +1,19 @@
 import { NestFactory } from '@nestjs/core';
-import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
-import { OpenApiModule } from './app.module';
+import { CronModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(OpenApiModule);
+  const app = await NestFactory.create(CronModule);
   const port = process.env.PORT;
-  app.use(cookieParser());
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-  app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:3002',
-      'http://localhost:3003',
-      'http://localhost:3004',
-      'https://open-api.quadrakaryasantosa.com',
-      'https://ck.quadrakaryasantosa.com',
-    ],
-    credentials: true,
-  });
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const configSwagger = new DocumentBuilder()
-    .setTitle('Quadra Open API')
+    .setTitle('Quadra Open API - Seeds auto activity')
     .setDescription(
       `Selamat datang di **Quadra Karya Santosa Open API**, sebuah layanan API yang dirancang untuk membantu developer, khususnya yang sedang belajar frontend, dalam memahami dan mengintegrasikan data.
     \n**Tentang Kami**  
@@ -37,7 +24,7 @@ async function bootstrap() {
     )
     .setVersion('1.0')
     .addBearerAuth()
-    .addServer('https://open-api.quadrakaryasantosa.com/free')
+    .addServer('https://open-api.quadrakaryasantosa.com/seeds')
     .addServer(`http://localhost:${port}`)
     .build();
   const document = SwaggerModule.createDocument(app, configSwagger);

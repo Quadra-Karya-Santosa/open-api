@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { UserUsecases } from './usecases/user.usecase';
 import { UserRepository } from './repository/user.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -41,6 +41,7 @@ import { GoogleStrategy } from 'auth/auth/user/google.strategy';
     JwtAuthGuardUser,
     UserAuthHelper,
     GoogleStrategy,
+    Logger,
   ],
   exports: [UserJwtStrategy],
 })

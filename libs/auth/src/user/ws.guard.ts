@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import { Socket } from 'socket.io';
+import cookie from 'cookie';
 
 @Injectable()
 export class WsJwtGuard implements CanActivate {
