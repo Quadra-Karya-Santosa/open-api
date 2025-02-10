@@ -76,6 +76,7 @@ export class SeedsUsecases {
     return await this.seedsRepo.activityJob(body);
   }
 
+  @ApiExcludeEndpoint()
   @ApiResponse({
     status: 201,
     description: 'Create cron user success.',
