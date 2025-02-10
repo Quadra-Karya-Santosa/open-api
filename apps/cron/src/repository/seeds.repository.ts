@@ -1,9 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  ArticleI,
   AssetI,
   CommentPostDTO,
+  getArticleResDTO,
   GetAssetDetailResDTO,
   GetAssetsDTO,
+  GetListUserDTO,
   GetPortfolioResDTO,
   GetPostResDTO,
   GetQuizesResDTO,
@@ -15,6 +18,7 @@ import {
   LoginResDTO,
   Post,
   Quiz,
+  ResultUser,
   SeedsUserResDTO,
   SellDTO,
   Tournament,
@@ -53,6 +57,86 @@ export class SeedsRepository {
       this.logger.error('error getUserToken: ', error);
       return null;
     }
+  };
+  getListUser = async (loginData: LoginResDTO) => {
+    try {
+      const response = await fetch(
+        `${this.seedsURL}/user/v1/search?search=a&page=1&limit=100`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${loginData.accessToken}`,
+          },
+        },
+      );
+      const result: GetListUserDTO = await response.json();
+      return result.result;
+    } catch (error) {
+      this.logger.error('error getPosts: ', error);
+      return null;
+    }
+  };
+
+  followUser = (loginData: LoginResDTO, user: ResultUser) => {
+    const payload = {
+      following_id: user.id,
+    };
+    return fetch(`${this.seedsURL}/user/v1/following`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${loginData.accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  };
+  jobUser = async (loginData: LoginResDTO, user: SeedsUserResDTO) => {
+    const articles = await this.getListUser(loginData);
+    const notFollowingUser = articles.filter(
+      (item) => item.isFollowed === false,
+    );
+
+    if (!notFollowingUser) {
+      this.logger.log(`❌ There is no user remaining to follow`);
+    }
+    const followUser = await this.followUser(loginData, notFollowingUser[0]);
+    this.logger.log(
+      `✅ ${user.phoneNumber} follow user ${notFollowingUser[0].name}: ${followUser.status}`,
+    );
+  };
+  getArticle = async (loginData: LoginResDTO) => {
+    try {
+      const response = await fetch(
+        `${this.seedsURL}/news/v1/all?page=1&limit=100&source=articles&language=english&search=&category=All&totalPage=9&sort_by=all`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${loginData.accessToken}`,
+          },
+        },
+      );
+      const result: getArticleResDTO = await response.json();
+      return result.data;
+    } catch (error) {
+      this.logger.error('error getPosts: ', error);
+      return null;
+    }
+  };
+
+  likeArticle = (loginData: LoginResDTO, article: ArticleI) => {
+    const payload = {
+      comment: '',
+    };
+    return fetch(`${this.seedsURL}/news/v1/like/${article.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${loginData.accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
   };
 
   getUser = async (loginData: LoginResDTO) => {
@@ -159,6 +243,18 @@ export class SeedsRepository {
     );
   };
 
+  jobArticle = async (loginData: LoginResDTO, user: SeedsUserResDTO) => {
+    const articles = await this.getArticle(loginData);
+    const notLikedArticles = articles.filter((item) => item.is_liked === false);
+
+    if (!notLikedArticles) {
+      this.logger.log(`❌ There is no article remaining to like`);
+    }
+    const likeArticle = await this.likeArticle(loginData, notLikedArticles[0]);
+    this.logger.log(
+      `✅ ${user.phoneNumber} likeArticle ${notLikedArticles[0].title}: ${likeArticle.status}`,
+    );
+  };
   getQuizes = async (loginData: LoginResDTO) => {
     try {
       const response = await fetch(
@@ -446,6 +542,8 @@ export class SeedsRepository {
       await this.jobPost(loginData, userData);
       await this.jobQuiz(loginData, userData);
       await this.jobTournament(loginData, userData);
+      await this.jobArticle(loginData, userData);
+      await this.jobUser(loginData, userData);
     } catch (error) {
       this.logger.error(error);
     }

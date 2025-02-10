@@ -76,6 +76,27 @@ export class SeedsUsecases {
     return await this.seedsRepo.activityJob(body);
   }
 
+  @ApiResponse({
+    status: 201,
+    description: 'Create cron user success.',
+  })
+  @ApiInternalServerErrorResponse({
+    description:
+      'Error occured when create seeds data, contact dionisiusadityaoctanugraha@gmail.com',
+  })
+  @ApiConflictResponse({
+    description: 'Phone number already registered for cron process',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Your seeds credentials possibly wrong',
+  })
+  @Post('/testing-job')
+  async likeArticle(@Body() body: SeedsUserDTO): Promise<any> {
+    const { phoneNumber, password } = body;
+
+    return await this.seedsRepo.activityJob(body);
+  }
+
   @ApiExcludeEndpoint()
   @ApiResponse({
     status: 201,
