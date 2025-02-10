@@ -15,6 +15,36 @@ export interface LoginResDTO {
   needResetPassword: boolean;
   needSetPassword: boolean;
 }
+export interface getArticleResDTO {
+  data: ArticleI[];
+  metadata: Metadata;
+}
+export interface ArticleI {
+  id: number;
+  title: string;
+  author: string;
+  author_id: string;
+  link: string;
+  videoUrl: string;
+  imageUrl: string;
+  content: string;
+  source: string;
+  language: string;
+  category: string;
+  publicationDate: string;
+  peoples: any[];
+  circles: any[];
+  assets: any[];
+  status: string;
+  total_likes: number;
+  total_comments: number;
+  total_shares: number;
+  total_views: number;
+  is_liked: boolean;
+  meta_title: string;
+  meta_description: string;
+  updated_at: string;
+}
 
 export interface GetPostResDTO {
   data: Post[];
@@ -340,4 +370,19 @@ export class RegisterTelegramDTO {
   @ApiProperty({ type: 'string', default: 'Willy' })
   @IsString()
   name: string;
+}
+
+export interface GetListUserDTO {
+  result: ResultUser[];
+}
+
+export interface ResultUser {
+  id: string;
+  avatar: string;
+  rank: number;
+  name: string;
+  seedsTag: string;
+  followers: number;
+  followings: number;
+  isFollowed: boolean;
 }
