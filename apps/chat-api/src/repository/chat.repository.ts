@@ -9,6 +9,6 @@ export class ChatRepository {
   private readonly repository: Repository<Chat>;
 
   insertChat = async (data: Chat) => {
-    await this.repository.save(data);
+    return await this.repository.save(data);
   };
 }

@@ -1,20 +1,14 @@
 import {
   Body,
   ClassSerializerInterceptor,
-  ConflictException,
   Controller,
   Get,
-  InternalServerErrorException,
-  Logger,
-  Param,
   Post,
   Req,
   Res,
-  UnauthorizedException,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { UserRepository } from '../repository/user.repository';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -26,23 +20,16 @@ import {
 } from '@nestjs/swagger';
 import { LoginDTO, RegisterDTO, AuthenticationDTO } from '../dto/auth.dto';
 import { User } from 'libs/entities';
-import { UserAuthHelper } from 'auth/auth';
-import { RoleEnum } from 'libs/entities/enum/role';
-import { AuthRepository } from '../repository/auth.repository';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { UserUsecases } from '../app/usecases/user.usecase';
 
 @ApiTags('User')
 @ApiBearerAuth()
 @UseInterceptors(ClassSerializerInterceptor)
-@Controller('user')
-export class UserUsecases {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly authHelper: UserAuthHelper,
-    private readonly authRepository: AuthRepository,
-    private readonly logger: Logger,
-  ) {}
+@Controller('/user')
+export class UserController {
+  constructor(private readonly userUsecase: UserUsecases) {}
 
   @ApiResponse({
     status: 201,
@@ -61,31 +48,11 @@ export class UserUsecases {
     @Body() body: RegisterDTO,
     @Req() req: Request,
   ): Promise<AuthenticationDTO> {
-    const exist = await this.userRepository.getUserByEmail(body.email);
-    if (exist) {
-      throw new ConflictException('Email already registered');
-    }
-    const password = await this.authHelper.encodePassword(body.password);
-    const user = new User({
-      email: body.email,
-      username: body.name,
-      password,
-      role: RoleEnum.user,
-      ip: req.ip,
-      useragent: req.headers['user-agent'],
-    });
-    try {
-      const data = await this.userRepository.insertUser(user);
-      return {
-        token: this.authHelper.generateToken(data),
-        user: data,
-      };
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        'Error occured when try to register',
-      );
-    }
+    return await this.userUsecase.register(
+      body,
+      req.ip,
+      req.headers['user-agent'],
+    );
   }
 
   @ApiResponse({
@@ -102,30 +69,14 @@ export class UserUsecases {
   })
   @Post('/login')
   async login(@Body() body: LoginDTO): Promise<AuthenticationDTO> {
-    const user = await this.userRepository.getUserByEmail(body.email);
-    if (!user) {
-      throw new UnauthorizedException('Incorrect email or password');
-    }
-    const isValid = await this.authHelper.isPasswordValid(
-      user.password,
-      body.password,
-    );
-
-    if (!isValid) {
-      throw new UnauthorizedException('Incorrect email or password');
-    }
-
-    return {
-      token: this.authHelper.generateToken(user),
-      user,
-    };
+    return await this.userUsecase.login(body);
   }
 
   @Get('/profile')
   @UseGuards(AuthGuard('user'))
   async getProfile(@Req() req: any) {
     const user: User = req.user;
-    return await this.authRepository.getDataUser(user.id);
+    return await this.userUsecase.getProfile(user.id);
   }
 
   @Get('google')
@@ -137,8 +88,7 @@ export class UserUsecases {
   @ApiExcludeEndpoint()
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
-    const user = await this.userRepository.getUserByEmail(req.user.email);
-    const jwt = this.authHelper.generateToken(user);
+    const jwt = await this.userUsecase.generateTokenByEmail(req.user.email);
     res.redirect(`http://localhost:3000/dashboard?token=${jwt}`);
   }
 
@@ -160,24 +110,9 @@ export class UserUsecases {
     @Res() res: Response,
     @Req() req: Request,
   ): Promise<void> {
-    const user = await this.userRepository.getUserByEmail(body.email);
-    if (!user) {
-      throw new UnauthorizedException('Incorrect email or password');
-    }
-    const isValid = await this.authHelper.isPasswordValid(
-      user.password,
-      body.password,
-    );
+    const token = await this.userUsecase.loginCookie(body);
 
-    if (!isValid) {
-      throw new UnauthorizedException('Incorrect email or password');
-    }
-
-    const token = this.authHelper.generateToken(user);
-
-    this.logger.log('Request Hostname:', req.hostname);
     const origin = req.headers.origin;
-    this.logger.log('Request Origin:', origin);
     const isLocalhost =
       origin.includes('localhost') || origin.includes('127.0.0.1');
 

@@ -7,7 +7,10 @@ import * as bodyParser from 'body-parser';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AuthApiModule);
+  const app = await NestFactory.create(AuthApiModule, {
+    snapshot: true,
+    rawBody: true,
+  });
   const port = process.env.PORT;
   app.use(cookieParser());
   app.use(bodyParser.json({ limit: '50mb' }));

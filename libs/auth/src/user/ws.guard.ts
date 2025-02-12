@@ -11,18 +11,19 @@ export class WsJwtGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    if (context.getType() !== 'ws') {
-      return false;
-    }
-
-    const client: Socket = context.switchToWs().getClient();
-    const token = this.extractTokenFromHeader(client);
-
-    if (!token) {
-      return false;
-    }
-
     try {
+      if (context.getType() !== 'ws') {
+        return false;
+      }
+
+      const client: Socket = context.switchToWs().getClient();
+      const tokenHeader = this.extractTokenFromHeader(client);
+      const tokenAuth = this.extractTokenFromAuth(client);
+      const token = tokenHeader ?? tokenAuth;
+
+      if (!token) {
+        return false;
+      }
       const payload = this.jwtService.verify(token);
       (client as any).user = payload;
       return true;
@@ -34,6 +35,11 @@ export class WsJwtGuard implements CanActivate {
   private extractTokenFromHeader(client: Socket): string | undefined {
     const [type, token] =
       client.handshake.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
+
+  private extractTokenFromAuth(client: Socket): string | undefined {
+    const [type, token] = client.handshake.auth.Authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
 }

@@ -1,9 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import { ChatApiModule } from './app.module';
-import { AsyncApiDocumentBuilder, AsyncApiModule } from 'nestjs-asyncapi';
 
 async function bootstrap() {
   const app = await NestFactory.create(ChatApiModule);
@@ -13,23 +11,23 @@ async function bootstrap() {
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const asyncApiOptions = new AsyncApiDocumentBuilder()
-    .setTitle('Feline')
-    .setDescription('Feline server description here')
-    .setVersion('1.0')
-    .setDefaultContentType('application/json')
-    .addSecurity('user-password', { type: 'userPassword' })
-    .addServer('feline-ws', {
-      url: 'ws://localhost:3003',
-      protocol: 'socket.io',
-    })
-    .build();
+  // const asyncApiOptions = new AsyncApiDocumentBuilder()
+  //   .setTitle('Feline')
+  //   .setDescription('Feline server description here')
+  //   .setVersion('1.0')
+  //   .setDefaultContentType('application/json')
+  //   .addSecurity('user-password', { type: 'userPassword' })
+  //   .addServer('feline-ws', {
+  //     url: 'ws://localhost:3003',
+  //     protocol: 'socket.io',
+  //   })
+  //   .build();
 
-  const asyncapiDocument = await AsyncApiModule.createDocument(
-    app,
-    asyncApiOptions,
-  );
-  await AsyncApiModule.setup('/api-docs', app, asyncapiDocument);
+  // const asyncapiDocument = await AsyncApiModule.createDocument(
+  //   app,
+  //   asyncApiOptions,
+  // );
+  // await AsyncApiModule.setup('/api-docs', app, asyncapiDocument);
 
   await app.listen(port, () => {
     console.log('[REST]', `http://localhost:${port}`);
