@@ -4,40 +4,64 @@ import {
   MessageBody,
   ConnectedSocket,
   WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
+import {
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WsJwtGuard } from 'auth/auth/user/ws.guard';
 import { ChatRepository } from '../repository/chat.repository';
 import { Chat } from 'libs/entities/open-api';
-import { AsyncApiPub } from 'nestjs-asyncapi';
-import { CreateMessageDTO } from '../dto/chat.dto';
+import { AuthRepository } from '../repository/auth.repository';
+import { WebsocketExceptionsFilter } from '../helper/ws-exception';
 
 @WebSocketGateway()
 @UseGuards(WsJwtGuard)
+@UseFilters(WebsocketExceptionsFilter)
+@UsePipes(new ValidationPipe({ transform: true }))
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private chatRepository: ChatRepository) {}
+  constructor(
+    private chatRepository: ChatRepository,
+    private readonly authRepository: AuthRepository,
+  ) {}
 
   @SubscribeMessage('sendMessage')
-  @AsyncApiPub({
-    channel: 'sendMessge',
-    message: {
-      payload: CreateMessageDTO,
-    },
-  })
+  // @AsyncApiPub({
+  //   channel: 'sendMessge',
+  //   message: {
+  //     payload: CreateMessageDTO,
+  //   },
+  // })
   async handleMessage(
     @MessageBody('message') message: string,
     @ConnectedSocket() client: Socket,
   ) {
-    const user = (client as any).user;
+    const userContext = (client as any).user;
     const chat = new Chat({
       message,
-      ownerId: user.id,
+      ownerId: userContext.id,
     });
-    await this.chatRepository.insertChat(chat);
-    this.server.emit('newMessage', { user, message });
+    const users = await this.authRepository.getUsers([userContext.id]);
+    const user = users[0];
+    const newChat = await this.chatRepository.insertChat(chat);
+    this.server.emit('newMessage', {
+      id: newChat.id,
+      message: newChat.message,
+      createdAt: newChat.createdAt,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        role: 'user',
+      },
+    });
   }
 }

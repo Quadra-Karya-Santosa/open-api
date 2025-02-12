@@ -9,6 +9,7 @@ import { ChatRepository } from './repository/chat.repository';
 import { ChatGateway } from './usecases/chat-ws.usecase';
 import { Chat } from 'libs/entities/open-api';
 import { WsJwtGuard } from 'auth/auth/user/ws.guard';
+import { AuthRepository } from './repository/auth.repository';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { WsJwtGuard } from 'auth/auth/user/ws.guard';
   providers: [
     ChatGateway,
     ChatRepository,
+    AuthRepository,
     UserJwtStrategy,
     JwtAuthGuardUser,
     UserAuthHelper,
