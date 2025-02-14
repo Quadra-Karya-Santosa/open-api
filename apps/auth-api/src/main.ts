@@ -1,20 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
-import { AuthApiModule } from './auth-api.module';
+import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AuthApiModule, {
-    snapshot: true,
-    rawBody: true,
-  });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const port = process.env.PORT;
   app.use(cookieParser());
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+  app.set('trust proxy', true);
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -30,7 +29,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const appGRPC = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AuthApiModule,
+    AppModule,
     {
       transport: Transport.GRPC,
       options: {

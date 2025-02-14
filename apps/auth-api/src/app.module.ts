@@ -5,4 +5,4 @@ import { AuthModule } from './app/auth.module';
 @Module({
   imports: [AuthModule, RepositoryModule],
 })
-export class AuthApiModule {}
+export class AppModule {}
