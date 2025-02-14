@@ -49,6 +49,25 @@ export class ChatUsecases {
     try {
       const { skip, limit } = pagination;
       const { total, chats } = await this.chatRepository.getAllChat(pagination);
+      const lastPage = Math.ceil(total / limit);
+      const hasPreviousPage = skip !== 0;
+      const hasNextPage = skip + limit < total;
+      const meta: MetaMessageDTO = {
+        total,
+        skip,
+        limit,
+        lastPage,
+        hasPreviousPage,
+        hasNextPage,
+      };
+
+      if (chats.length === 0) {
+        return {
+          chats: [],
+          meta,
+        };
+      }
+
       const ids = chats.map((chat) => chat.ownerId);
       const users = await this.authRepository.getUsers(ids);
       const userMap: Map<string, User> = new Map();
@@ -66,19 +85,6 @@ export class ChatUsecases {
         });
         return chat;
       });
-
-      const lastPage = Math.ceil(total / limit);
-      const hasPreviousPage = skip > 0;
-      const hasNextPage = skip < total;
-
-      const meta: MetaMessageDTO = {
-        total,
-        skip,
-        limit,
-        lastPage,
-        hasPreviousPage,
-        hasNextPage,
-      };
 
       return {
         chats: chatWithUser,

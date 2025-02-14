@@ -84,7 +84,7 @@ export class UserAuthHelper implements OnModuleInit {
     storedPassword: string,
     suppliedPassword: string,
   ): Promise<boolean> {
-    const [hashedPassword, salt] = storedPassword.split('.');
+    const [hashedPassword, salt] = storedPassword.split('.-.');
     const buf = await this.scryptAsync(suppliedPassword, salt, 64);
 
     return buf.toString() === hashedPassword;
@@ -92,10 +92,10 @@ export class UserAuthHelper implements OnModuleInit {
 
   // Encode User's password
   public async encodePassword(password: string): Promise<string> {
-    const salt = randomBytes(8).toString('hex');
+    const salt = randomBytes(8).toString('utf8');
     const buf = await this.scryptAsync(password, salt, 64);
 
-    return `${buf.toString()}.${salt}`;
+    return `${buf.toString()}.-.${salt}`;
   }
 
   // Generate OTP
