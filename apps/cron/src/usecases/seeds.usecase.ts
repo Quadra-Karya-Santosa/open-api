@@ -25,9 +25,11 @@ import { SeedsUser, Telegram } from 'libs/entities/seeds';
 import { SeedsRepository } from '../repository/seeds.repository';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronRepository } from '../repository/cron.repository';
-import { ChatDTO, RegisterTelegramDTO } from '../dto/seeds.dto';
-import { TelegramRepository } from '../repository/telegram.repository';
+import { ChatDTO, MessageType, RegisterTelegramDTO } from '../dto/seeds.dto';
+import { TelegramRegisterRepository } from '../repository/telegram-register.repository';
 import { SeedsTelegramRepository } from '../repository/seeds-telegram.repository';
+import { TelegramPaymentRepository } from '../repository/telegram-payment.repository';
+import { TelegramSummaryRepository } from '../repository/telegram-summary.repository';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @ApiTags('Telegram BOT')
@@ -39,8 +41,10 @@ export class SeedsUsecases {
   constructor(
     private readonly seedsUserRepo: SeedsUserRepository,
     private readonly seedsRepo: SeedsRepository,
-    private readonly telegramRepo: TelegramRepository,
-    private readonly seedsTelegramRepo: SeedsTelegramRepository,
+    private readonly telegramRegisterRepo: TelegramRegisterRepository,
+    private readonly telegramPaymentRepo: TelegramPaymentRepository,
+    private readonly telegramSummaryRepo: TelegramSummaryRepository,
+    private readonly seedsTelegramRegisterRepo: SeedsTelegramRepository,
     private schedulerRegistry: SchedulerRegistry,
     private readonly logger: Logger,
   ) {}
@@ -117,7 +121,7 @@ export class SeedsUsecases {
   async registerTelegramId(@Body() body: RegisterTelegramDTO) {
     try {
       const { chatId, name } = body;
-      const exist = await this.seedsTelegramRepo.getByTelegramId(
+      const exist = await this.seedsTelegramRegisterRepo.getByTelegramId(
         chatId.toString(),
       );
       if (exist)
@@ -125,7 +129,7 @@ export class SeedsUsecases {
           `Telegram chat id already registered as ${exist.name}`,
         );
       const telegram = new Telegram({ chatId: chatId.toString(), name });
-      await this.seedsTelegramRepo.createTelegram(telegram);
+      await this.seedsTelegramRegisterRepo.createTelegram(telegram);
     } catch (error) {
       this.logger.error(error);
       throw error;
@@ -143,15 +147,31 @@ export class SeedsUsecases {
   })
   @Get('/telegram-accounts')
   async getAllTelegram() {
-    return await this.seedsTelegramRepo.getAllTelegram();
+    return await this.seedsTelegramRegisterRepo.getAllTelegram();
   }
 
   @Post('/send-telegram-message')
   async getCronStatus(@Body() body: ChatDTO) {
-    const { message } = body;
-    const telegrams = await this.seedsTelegramRepo.getAllTelegram();
-    const uniqueId = telegrams.map((item) => +item.chatId);
+    const { message, type } = body;
+    if (type === MessageType.register) {
+      const telegrams = await this.seedsTelegramRegisterRepo.getAllTelegram();
+      const uniqueId = telegrams.map((item) => +item.chatId);
 
-    return await this.telegramRepo.sendMessage(message, uniqueId);
+      return await this.telegramRegisterRepo.sendMessage(message, uniqueId);
+    }
+
+    if (type === MessageType.payment) {
+      const telegrams = await this.seedsTelegramRegisterRepo.getAllTelegram();
+      const uniqueId = telegrams.map((item) => +item.chatId);
+
+      return await this.telegramPaymentRepo.sendMessage(message, uniqueId);
+    }
+
+    if (type === MessageType.summary) {
+      const telegrams = await this.seedsTelegramRegisterRepo.getAllTelegram();
+      const uniqueId = telegrams.map((item) => +item.chatId);
+
+      return await this.telegramSummaryRepo.sendMessage(message, uniqueId);
+    }
   }
 }

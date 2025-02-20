@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
 
 export interface LoginPayloadDTO {
   phoneNumber: string;
@@ -356,10 +356,20 @@ export interface SellDTO {
   type: string;
 }
 
+export enum MessageType {
+  register = 'register',
+  payment = 'payment',
+  summary = 'summary',
+}
+
 export class ChatDTO {
   @ApiProperty({ type: 'string', default: 'body message' })
   @IsString()
   message: string;
+
+  @ApiProperty({ enum: MessageType, default: MessageType.register })
+  @IsEnum(MessageType, { message: 'Invalid message type' })
+  type: MessageType;
 }
 
 export class RegisterTelegramDTO {
