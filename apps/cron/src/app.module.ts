@@ -7,10 +7,12 @@ import { SeedsUserRepository } from './repository/seeds-user.repository';
 import { SeedsRepository } from './repository/seeds.repository';
 import { CronRepository } from './repository/cron.repository';
 import { ScheduleModule, SchedulerRegistry } from '@nestjs/schedule';
-import { TelegramRepository } from './repository/telegram.repository';
+import { TelegramRegisterRepository } from './repository/telegram-register.repository';
 import { SeedsTelegramRepository } from './repository/seeds-telegram.repository';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TelegrafModule } from 'nestjs-telegraf';
+import { TelegramPaymentRepository } from './repository/telegram-payment.repository';
+import { TelegramSummaryRepository } from './repository/telegram-summary.repository';
 
 @Module({
   imports: [
@@ -35,7 +37,16 @@ import { TelegrafModule } from 'nestjs-telegraf';
     TypeOrmModule.forFeature([SeedsUser, Telegram]),
     ScheduleModule.forRoot(),
     TelegrafModule.forRoot({
+      botName: 'Register Bot',
       token: process.env.TELEGRAM_BOT_TOKEN,
+    }),
+    TelegrafModule.forRoot({
+      botName: 'Payment Bot',
+      token: process.env.TELEGRAM_BOT_PAYMENT_TOKEN,
+    }),
+    TelegrafModule.forRoot({
+      botName: 'Summary Bot',
+      token: process.env.TELEGRAM_BOT_SUMMARY_TOKEN,
     }),
   ],
   controllers: [SeedsUsecases],
@@ -44,7 +55,9 @@ import { TelegrafModule } from 'nestjs-telegraf';
     SeedsRepository,
     CronRepository,
     SchedulerRegistry,
-    TelegramRepository,
+    TelegramRegisterRepository,
+    TelegramPaymentRepository,
+    TelegramSummaryRepository,
     SeedsTelegramRepository,
     Logger,
   ],

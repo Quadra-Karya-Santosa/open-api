@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { GetTelegramUpdateI } from '../dto/telegram.dto';
-import { Hears, On, Update } from 'nestjs-telegraf';
-import { Context } from 'telegraf';
-import { SeedsTelegramRepository } from './seeds-telegram.repository';
+import { Hears, InjectBot, Update } from 'nestjs-telegraf';
+import { Context, Telegraf } from 'telegraf';
 import { Telegram } from 'libs/entities/seeds';
+import { SeedsTelegramRepository } from './seeds-telegram.repository';
 
 @Update()
 @Injectable()
-export class TelegramRepository {
-  constructor(private readonly seedsTelegramRepo: SeedsTelegramRepository) {}
+export class TelegramPaymentRepository {
+  constructor(
+    private readonly seedsTelegramRepo: SeedsTelegramRepository,
+    @InjectBot('Payment Bot') private catBot: Telegraf<Context>,
+  ) {}
 
-  private readonly botToken = process.env.TELEGRAM_BOT_TOKEN;
+  private readonly botToken = process.env.TELEGRAM_BOT_PAYMENT_TOKEN;
   private readonly apiUrl = `https://api.telegram.org/bot${this.botToken}`;
 
   sendMessage = async (message: string, ids: number[]) => {
@@ -65,7 +68,7 @@ export class TelegramRepository {
       });
       await this.seedsTelegramRepo.createTelegram(telegramUser);
       await ctx.reply(
-        `You're all set! We'll keep you posted on any activities in the Seeds app.`,
+        `You're all set! We'll keep you posted on payment activities in the Seeds app.`,
       );
     }
   }
